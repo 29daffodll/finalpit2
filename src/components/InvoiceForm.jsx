@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const InvoiceForm = ({ isOpen, onClose, onSubmit }) => {
+const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
   const [formData, setFormData] = useState({
     invoiceNumber: '',
     supplier: '',
@@ -10,8 +10,46 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit }) => {
     totalAmount: 0,
     status: 'pending',
     paymentTerms: '',
-    notes: ''
+    notes: '',
+    po_reference: ''
   });
+
+  useEffect(() => {
+    if (selectedPO) {
+      // Pre-fill form with PO data
+      setFormData({
+        invoiceNumber: '',
+        supplier: selectedPO.supplier_name,
+        issueDate: new Date().toISOString().split('T')[0],
+        dueDate: '',
+        items: selectedPO.items.map(item => ({
+          description: item.item,
+          quantity: item.quantity,
+          unitPrice: parseFloat(item.unit_price.replace('₱', '').replace(',', '')),
+          total: item.quantity * parseFloat(item.unit_price.replace('₱', '').replace(',', ''))
+        })),
+        totalAmount: parseFloat(selectedPO.total_amount.replace('₱', '').replace(',', '')),
+        status: 'pending',
+        paymentTerms: selectedPO.payment_terms,
+        notes: '',
+        po_reference: selectedPO.po_number
+      });
+    } else {
+      // Reset form
+      setFormData({
+        invoiceNumber: '',
+        supplier: '',
+        issueDate: '',
+        dueDate: '',
+        items: [{ description: '', quantity: '', unitPrice: '', total: 0 }],
+        totalAmount: 0,
+        status: 'pending',
+        paymentTerms: '',
+        notes: '',
+        po_reference: ''
+      });
+    }
+  }, [selectedPO]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -73,7 +111,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit }) => {
       <div className="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
         <div className="mt-3">
           <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-            Create Invoice
+            {selectedPO ? 'Create Invoice from PO' : 'Create Invoice'}
           </h3>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-6 mb-6">
@@ -135,16 +173,32 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit }) => {
               />
             </div>
 
+            {selectedPO && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700">PO Reference</label>
+                <input
+                  type="text"
+                  name="po_reference"
+                  value={formData.po_reference}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-gray-50"
+                  readOnly
+                />
+              </div>
+            )}
+
             <div className="space-y-4 mb-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-900">Items</h3>
-                <button
-                  type="button"
-                  onClick={addItem}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                >
-                  Add Item
-                </button>
+                {!selectedPO && (
+                  <button
+                    type="button"
+                    onClick={addItem}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                  >
+                    Add Item
+                  </button>
+                )}
               </div>
 
               {formData.items.map((item, index) => (
@@ -157,6 +211,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit }) => {
                       onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                       required
+                      readOnly={!!selectedPO}
                     />
                   </div>
                   <div>
@@ -167,6 +222,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit }) => {
                       onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value))}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                       required
+                      readOnly={!!selectedPO}
                     />
                   </div>
                   <div>
@@ -177,19 +233,22 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit }) => {
                       onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value))}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                       required
+                      readOnly={!!selectedPO}
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700">Total: ₱{item.total || 0}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(index)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    {!selectedPO && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(index)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

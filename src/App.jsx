@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
 import Dashboard from './components/dashboard.jsx';
@@ -8,6 +8,7 @@ import PurchaseOrderList from './components/PurchaseOrderList';
 import VendorList from './components/VendorList';
 import Sidebar from './components/sidebar';
 import SupplierOnboarding from './components/SupplierOnboarding';
+import Products from './components/Products';
 
 function App() {
   const [suppliers, setSuppliers] = useState([
@@ -49,6 +50,8 @@ function App() {
     }
   ]);
 
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+
   return (
     <Router>
       <div className="flex min-h-screen">
@@ -59,9 +62,10 @@ function App() {
             <Route path="/dashboard" element={<Dashboard suppliers={suppliers} />} />
             <Route path="/suppliers" element={<Suppliers suppliers={suppliers} setSuppliers={setSuppliers} />} />
             <Route path="/suppliers/onboarding" element={<SupplierOnboarding />} />
-            <Route path="/invoices" element={<InvoiceList />} />
-            <Route path="/purchase-orders" element={<PurchaseOrderList />} />
+            <Route path="/invoices" element={<InvoiceList purchaseOrders={purchaseOrders} />} />
+            <Route path="/purchase-orders" element={<PurchaseOrderList purchaseOrders={purchaseOrders} setPurchaseOrders={setPurchaseOrders} />} />
             <Route path="/vendors" element={<VendorList />} />
+            <Route path="/products" element={<Products />} />
           </Routes>
         </main>
       </div>

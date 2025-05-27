@@ -5,6 +5,7 @@ import PurchaseOrderForm from './PurchaseOrderForm';
 const PurchaseOrderList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('All');
   const [purchaseOrders, setPurchaseOrders] = useState([
     {
       po_number: 'PO-001',
@@ -12,7 +13,7 @@ const PurchaseOrderList = () => {
       order_date: '2024-03-15',
       delivery_date: '2024-03-22',
       total_amount: '₱45,750',
-      status: 'Delivered',
+      status: 'Processing',
       items: [
         { item: 'Office Chair', quantity: 5, unit_price: '₱4,500' },
         { item: 'Desk Lamp', quantity: 10, unit_price: '₱1,575' },
@@ -29,7 +30,7 @@ const PurchaseOrderList = () => {
       order_date: '2024-03-16',
       delivery_date: '2024-03-30',
       total_amount: '₱128,000',
-      status: 'Pending',
+      status: 'Approved',
       items: [
         { item: 'Laptop', quantity: 2, unit_price: '₱45,000' },
         { item: 'Monitor', quantity: 4, unit_price: '₱8,500' },
@@ -46,7 +47,7 @@ const PurchaseOrderList = () => {
       order_date: '2024-03-17',
       delivery_date: '2024-03-24',
       total_amount: '₱32,500',
-      status: 'Processing',
+      status: 'Denied',
       items: [
         { item: 'A4 Paper (Boxes)', quantity: 50, unit_price: '₱450' },
         { item: 'Sticky Notes', quantity: 100, unit_price: '₱75' },
@@ -66,7 +67,7 @@ const PurchaseOrderList = () => {
       order_date: formData.orderDate,
       delivery_date: formData.deliveryDate,
       total_amount: `₱${formData.totalAmount}`,
-      status: 'Pending',
+      status: 'Processing',
       items: formData.items.map(item => ({
         item: item.description,
         quantity: item.quantity,
@@ -80,13 +81,35 @@ const PurchaseOrderList = () => {
     setPurchaseOrders(prev => [...prev, newPO]);
   };
 
-  const filteredPOs = purchaseOrders.filter(po => 
-    po.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    po.supplier_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    po.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    po.requestor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    po.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPOs = purchaseOrders.filter(po => {
+    const matchesSearch = 
+      po.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.supplier_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.requestor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.department.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'All' || po.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Processing':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      case 'Denied':
+        return 'bg-red-100 text-red-800';
+      case 'Purchased':
+        return 'bg-blue-100 text-blue-800';
+      case 'Received':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="flex-1 min-h-screen bg-gray-100">
@@ -106,15 +129,33 @@ const PurchaseOrderList = () => {
           </button>
         </div>
         <div className="p-6">
-          <SearchBar 
-            placeholder="Search by PO number, supplier, status, requestor, or department..."
-            onSearch={setSearchTerm}
-          />
+          <div className="mb-4">
+            <SearchBar 
+              placeholder="Search by PO number, supplier, status, requestor, or department..."
+              onSearch={setSearchTerm}
+            />
+          </div>
+
+          <div className="flex space-x-2 mb-4">
+            {['All', 'Processing', 'Approved', 'Denied', 'Purchased', 'Received'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  statusFilter === status
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
 
           <div className="overflow-x-auto bg-white rounded-lg shadow">
-            {purchaseOrders.length === 0 ? (
+            {filteredPOs.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
-                No purchase orders yet. Click the button above to create one.
+                No purchase orders found matching your criteria.
               </div>
             ) : (
               <table className="min-w-full table-auto">
@@ -139,13 +180,7 @@ const PurchaseOrderList = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.delivery_date}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.total_amount}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          po.status === 'Delivered' 
-                            ? 'bg-green-100 text-green-800'
-                            : po.status === 'Pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(po.status)}`}>
                           {po.status}
                         </span>
                       </td>
@@ -178,4 +213,4 @@ const PurchaseOrderList = () => {
   );
 };
 
-export default PurchaseOrderList; 
+export default PurchaseOrderList;
