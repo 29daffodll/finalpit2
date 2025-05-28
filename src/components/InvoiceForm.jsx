@@ -16,23 +16,23 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
 
   useEffect(() => {
     if (selectedPO) {
-      // Pre-fill form with PO data
+      // Pre-fill form with PO data (new structure)
       setFormData({
         invoiceNumber: '',
-        supplier: selectedPO.supplier_name,
-        issueDate: new Date().toISOString().split('T')[0],
+        supplier: selectedPO.supplier,
+        issueDate: selectedPO.order_date || new Date().toISOString().split('T')[0],
         dueDate: '',
-        items: selectedPO.items.map(item => ({
-          description: item.item,
-          quantity: item.quantity,
-          unitPrice: parseFloat(item.unit_price.replace('₱', '').replace(',', '')),
-          total: item.quantity * parseFloat(item.unit_price.replace('₱', '').replace(',', ''))
-        })),
-        totalAmount: parseFloat(selectedPO.total_amount.replace('₱', '').replace(',', '')),
+        items: [{
+          description: selectedPO.description,
+          quantity: selectedPO.quantity,
+          unitPrice: selectedPO.unit_price,
+          total: selectedPO.total_price
+        }],
+        totalAmount: selectedPO.total_price,
         status: 'pending',
-        paymentTerms: selectedPO.payment_terms,
+        paymentTerms: '',
         notes: '',
-        po_reference: selectedPO.po_number
+        po_reference: selectedPO.po_id
       });
     } else {
       // Reset form

@@ -1,28 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SearchBar from './SearchBar';
 import InvoiceForm from './InvoiceForm';
+import { supabase } from '../supabaseClient';
 
-const InvoiceList = ({ purchaseOrders }) => {
+const InvoiceList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPOSelectorOpen, setIsPOSelectorOpen] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [selectedPO, setSelectedPO] = useState(null);
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  const handleSubmit = (formData) => {
-    const newInvoice = {
-      invoice_id: `INV-${String(invoices.length + 1).padStart(3, '0')}`,
-      supplier_name: formData.supplier,
-      invoice_date: formData.issueDate,
-      due_date: formData.dueDate,
-      amount: `₱${formData.totalAmount}`,
-      status: 'Pending',
-      po_reference: formData.po_reference || `PO-${String(invoices.length + 1).padStart(3, '0')}`,
-      payment_terms: formData.paymentTerms || 'Net 30',
-      items: formData.items.map(item => `${item.quantity}x ${item.description} @ ₱${item.unitPrice}`).join(', '),
-      remarks: formData.notes || 'Pending review'
-    };
-    setInvoices(prev => [...prev, newInvoice]);
+  useEffect(() => {
+    fetchPurchaseOrders();
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .order('issue_date', { ascending: false });
+
+      if (error) throw error;
+      setInvoices(data || []);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      setError(error.message);
+    }
+  };
+
+  const fetchPurchaseOrders = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('purchase_order')
+        .select('*')
+        .order('order_date', { ascending: false });
+
+      if (error) throw error;
+      setPurchaseOrders(data || []);
+    } catch (error) {
+      console.error('Error fetching purchase orders:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (formData) => {
+    try {
+      if (!selectedPO) {
+        throw new Error('No purchase order selected');
+      }
+
+      // Get the latest invoice number
+      const { data: latestInvoice, error: countError } = await supabase
+        .from('invoices')
+        .select('invoice_number')
+        .order('invoice_number', { ascending: false })
+        .limit(1);
+
+      if (countError) throw countError;
+
+      const nextInvoiceNumber = latestInvoice && latestInvoice.length > 0 
+        ? latestInvoice[0].invoice_number + 1 
+        : 1;
+
+      const newInvoice = {
+        invoice_number: nextInvoiceNumber,
+        issue_date: formData.issueDate,
+        due_date: formData.dueDate,
+        amount: selectedPO.total_amount,
+        paid_amount: 0,
+        status: 'Pending',
+        po_id: selectedPO.order_id
+      };
+
+      const { error } = await supabase
+        .from('invoices')
+        .insert([newInvoice]);
+
+      if (error) throw error;
+      
+      await fetchInvoices();
+      setIsFormOpen(false);
+      setSelectedPO(null);
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      setError(error.message);
+    }
   };
 
   const handleCreateFromPO = (po) => {
@@ -31,16 +103,42 @@ const InvoiceList = ({ purchaseOrders }) => {
     setIsFormOpen(true);
   };
 
+  const handleViewInvoice = (invoice) => {
+    setSelectedInvoice(invoice);
+    setIsViewModalOpen(true);
+  };
+
+  const handleDeleteInvoice = async (invoiceNumber) => {
+    if (!window.confirm('Are you sure you want to delete this invoice?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('invoice_number', invoiceNumber);
+
+      if (error) throw error;
+      
+      // Refresh the invoices list
+      await fetchInvoices();
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      setError(error.message);
+    }
+  };
+
   const filteredInvoices = invoices.filter(invoice => 
-    invoice.invoice_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.supplier_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.po_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.status.toLowerCase().includes(searchTerm.toLowerCase())
+    String(invoice.invoice_number).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (invoice.status && invoice.status.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const filteredPOs = purchaseOrders.filter(po => 
-    po.status === 'Approved' || po.status === 'Purchased'
+  const filteredPOs = purchaseOrders.filter(po =>
+    String(po.order_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (po.supplier_name && po.supplier_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  if (loading) return <div className="p-4">Loading purchase orders...</div>;
+  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
   return (
     <div className="flex-1 min-h-screen bg-gray-100">
@@ -63,7 +161,7 @@ const InvoiceList = ({ purchaseOrders }) => {
         </div>
         <div className="p-6">
           <SearchBar 
-            placeholder="Search invoices by ID, supplier, PO reference, or status..."
+            placeholder="Search invoices by number or status..."
             onSearch={setSearchTerm}
           />
 
@@ -76,25 +174,23 @@ const InvoiceList = ({ purchaseOrders }) => {
               <table className="min-w-full table-auto">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice Number</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid Amount</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Reference</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredInvoices.map((invoice) => (
-                    <tr key={invoice.invoice_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{invoice.invoice_id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.supplier_name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.invoice_date}</td>
+                    <tr key={invoice.invoice_number} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">INV-{String(invoice.invoice_number).padStart(3, '0')}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.issue_date}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.due_date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.amount}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{invoice.amount}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{invoice.paid_amount || 0}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           invoice.status === 'Paid' 
@@ -104,11 +200,19 @@ const InvoiceList = ({ purchaseOrders }) => {
                           {invoice.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.po_reference}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.items}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button className="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
-                        <button className="text-red-600 hover:text-red-900">Delete</button>
+                        <button 
+                          onClick={() => handleViewInvoice(invoice)}
+                          className="text-indigo-600 hover:text-indigo-900 mr-3"
+                        >
+                          View
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteInvoice(invoice.invoice_number)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -121,7 +225,7 @@ const InvoiceList = ({ purchaseOrders }) => {
 
       {/* PO Selector Modal */}
       {isPOSelectorOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <div className="flex justify-between items-center mb-4">
@@ -138,47 +242,112 @@ const InvoiceList = ({ purchaseOrders }) => {
                 </button>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full table-auto">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredPOs.map((po) => (
-                      <tr key={po.po_number} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{po.po_number}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.supplier_name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.order_date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.total_amount}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            po.status === 'Approved' 
-                              ? 'bg-green-100 text-green-800'
-                              : po.status === 'Purchased'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {po.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleCreateFromPO(po)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            Select
-                          </button>
-                        </td>
+                {purchaseOrders.length === 0 ? (
+                  <div className="p-6 text-center text-gray-500">
+                    No purchase orders available.
+                  </div>
+                ) : (
+                  <table className="min-w-full table-auto">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredPOs.map((po) => (
+                        <tr key={po.order_id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{po.order_id}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.supplier_name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.order_date}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.description}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.quantity}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{po.unit_price}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{po.total_amount}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button
+                              onClick={() => handleCreateFromPO(po)}
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
+                              Select
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Invoice Modal */}
+      {isViewModalOpen && selectedInvoice && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  Invoice Details
+                </h3>
+                <button
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Invoice Number</p>
+                    <p className="mt-1 text-black">INV-{String(selectedInvoice.invoice_number).padStart(3, '0')}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <p className="mt-1">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        selectedInvoice.status === 'Paid' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {selectedInvoice.status}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Issue Date</p>
+                    <p className="mt-1 text-black">{selectedInvoice.issue_date}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Due Date</p>
+                    <p className="mt-1 text-black">{selectedInvoice.due_date}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Amount</p>
+                    <p className="mt-1 text-black">₱{selectedInvoice.amount}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Paid Amount</p>
+                    <p className="mt-1 text-black">₱{selectedInvoice.paid_amount || 0}</p>
+                  </div>
+                </div>
+                {selectedInvoice.po_id && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Purchase Order Reference</p>
+                    <p className="mt-1 text-black">PO-{selectedInvoice.po_id}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

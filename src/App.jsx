@@ -51,12 +51,16 @@ function App() {
   ]);
 
   const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   return (
     <Router>
       <div className="flex min-h-screen">
-        <Sidebar />
-        <main className="flex-1">
+        <Sidebar expanded={sidebarExpanded} setExpanded={setSidebarExpanded} />
+        <main
+          className="flex-1 transition-all duration-300"
+          style={{ marginLeft: sidebarExpanded ? 256 : 80 }}
+        >
           <Routes>
             <Route path="/" element={<Dashboard suppliers={suppliers} />} />
             <Route path="/dashboard" element={<Dashboard suppliers={suppliers} />} />

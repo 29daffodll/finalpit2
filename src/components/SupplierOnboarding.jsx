@@ -11,13 +11,13 @@ const SupplierOnboarding = () => {
             <Link to="/suppliers" className="text-gray-700 hover:text-blue-600">All Suppliers</Link>
           </li>
           <li>
-            <Link to="/suppliers/onboarding" className="text-blue-600 font-medium">Onboarding</Link>
+            <Link to="/suppliers/aproved" className="text-blue-600 font-medium">Recently Approved</Link>
           </li>
           <li>
             <Link to="/suppliers/pending" className="text-gray-700 hover:text-blue-600">Pending Approval</Link>
           </li>
           <li>
-            <Link to="/suppliers/approved" className="text-gray-700 hover:text-blue-600">Approved Suppliers</Link>
+            <Link to="/suppliers/rejected" className="text-gray-700 hover:text-blue-600">Rejected Approval</Link>
           </li>
         </ul>
       </nav>
