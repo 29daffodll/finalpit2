@@ -81,7 +81,7 @@ const Sidebar = ({ expanded, setExpanded }) => {
           </Link>
 
           <a 
-            href="https://inventory-management-olive-eight.vercel.app/" 
+            href="https://inventory-management-taupe-six.vercel.app/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center p-3 rounded-lg transition-all duration-200 mb-1 text-gray-300 hover:text-white hover:bg-gray-700"
