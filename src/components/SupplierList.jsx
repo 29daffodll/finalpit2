@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import SearchBar from './SearchBar';
-import { FiEdit2, FiTrash2, FiMessageSquare } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiMessageSquare, FiMoreVertical } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import LoadingOrError from './LoadingOrError';
+import { createPortal } from 'react-dom';
 
 const initialFormData = {
   name: '',
@@ -25,6 +26,9 @@ const SupplierList = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [actionMenuOpen, setActionMenuOpen] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [dropdownSupplierId, setDropdownSupplierId] = useState(null);
 
   // Fetch suppliers from Supabase
   useEffect(() => {
@@ -34,7 +38,10 @@ const SupplierList = () => {
   const fetchSuppliers = async () => {
     setLoading(true);
     setError('');
-    const { data, error } = await supabase.from('suppliers').select('*').order('supplier_id', { ascending: true });
+    const { data, error } = await supabase
+      .from('suppliers')
+      .select('supplier_id, name, contact_details, product_service, certifications, compliance_history, classification, geographical_location, performance_rating, approved, financial_stability_score, quantity_capacity, delivery_reliability_score, product_types, delivery_capabilities')
+      .order('supplier_id', { ascending: true });
     if (error) {
       setError('Failed to fetch suppliers: ' + error.message);
     } else {
@@ -162,79 +169,135 @@ const SupplierList = () => {
     );
   });
 
+  // Helper to open the dropdown and set its position
+  const handleActionMenuOpen = (event, supplier_id) => {
+    if (actionMenuOpen === supplier_id) {
+      setActionMenuOpen(null);
+      setDropdownSupplierId(null);
+      return;
+    }
+    const rect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+    });
+    setDropdownSupplierId(supplier_id);
+    setActionMenuOpen(supplier_id);
+  };
+
+  // Helper to close the dropdown
+  const handleActionMenuClose = () => {
+    setActionMenuOpen(null);
+    setDropdownSupplierId(null);
+  };
+
   return (
-    <div className="flex-1 min-h-screen bg-gray-100">
+    <div className="flex-1 min-h-screen bg-white">
       <div className="bg-white h-full">
-        <div className="flex justify-between items-center w-full max-w-none py-4 md:py-8 px-2 md:px-8">
+        <div className="flex justify-between items-center py-8 px-8">
           <h1 className="text-2xl font-bold text-gray-800">Suppliers</h1>
         </div>
-        <div className="p-2 md:p-6">
-          <SearchBar
-            placeholder="Search suppliers by name, ID, product/service, or certifications..."
-            onSearch={setSearchTerm}
-          />
+        <div className="p-0" style={{ width: '1600px', margin: '0 auto' }}>
+          <div className="mb-4">
+            <SearchBar
+              placeholder="Search suppliers by name, ID, product/service, or certifications..."
+              onSearch={setSearchTerm}
+            />
+          </div>
           <LoadingOrError loading={loading} error={error} loadingText="Loading suppliers...">
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="overflow-x-auto" style={{ maxWidth: '100vw' }}>
-                <table className="w-full table-auto" style={{ minWidth: '900px' }}>
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Supplier ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Contact Details</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Product/Service</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Certifications</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Compliance History</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Classification</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Location</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Rating</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredSuppliers.map((supplier) => (
-                      <tr key={supplier.supplier_id} className="hover:bg-gray-50">
+            <div className="overflow-x-auto bg-white rounded-lg shadow overflow-visible" style={{ width: '1600px' }}>
+              <table className="min-w-full w-[1600px] table-auto border-separate border-spacing-0 overflow-visible">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">supplier_id</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">contact_details</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">product_service</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">certifications</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">compliance_history</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">classification</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">geographical_location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">performance_rating</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">approved</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">financial_stability_score</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">quantity_capacity</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">delivery_reliability_score</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">product_types</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">delivery_capabilities</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-white z-20 border-l border-gray-200" style={{ borderRight: 'none' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-white">
+                  {filteredSuppliers.map((supplier) => {
+                    let contact = '';
+                    if (typeof supplier.contact_details === 'object' && supplier.contact_details !== null) {
+                      contact = [supplier.contact_details.email, supplier.contact_details.phone].filter(Boolean).join(' | ');
+                    } else if (typeof supplier.contact_details === 'string') {
+                      try {
+                        const parsed = JSON.parse(supplier.contact_details);
+                        contact = [parsed.email, parsed.phone].filter(Boolean).join(' | ');
+                      } catch {
+                        contact = supplier.contact_details;
+                      }
+                    }
+                    return (
+                      <tr key={supplier.supplier_id} className="hover:bg-gray-50 relative">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{supplier.supplier_id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 break-all">
-                          <div className="flex items-center space-x-2">
-                            <span>{typeof supplier.contact_details === 'string' ? supplier.contact_details : JSON.stringify(supplier.contact_details)}</span>
-                            <button
-                              onClick={() => handleChat(supplier)}
-                              className="inline-flex items-center px-2 py-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
-                              title="Chat with supplier"
-                            >
-                              <FiMessageSquare className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 break-all">{contact}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.product_service}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(supplier.certifications || []).join(', ')}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{Array.isArray(supplier.certifications) ? supplier.certifications.join(', ') : supplier.certifications}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.compliance_history}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.classification}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.geographical_location}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.performance_rating}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.approved ? 'Yes' : 'No'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.financial_stability_score}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.quantity_capacity}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.delivery_reliability_score}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{Array.isArray(supplier.product_types) ? supplier.product_types.join(', ') : supplier.product_types}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{Array.isArray(supplier.delivery_capabilities) ? supplier.delivery_capabilities.join(', ') : supplier.delivery_capabilities}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-20 border-l border-gray-200" style={{ borderRight: 'none' }}>
                           <button
-                            onClick={() => handleEdit(supplier)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                            aria-label="Edit"
+                            className="bg-black hover:bg-gray-800 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-900"
+                            onClick={(e) => handleActionMenuOpen(e, supplier.supplier_id)}
                           >
-                            <FiEdit2 />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(supplier.supplier_id)}
-                            className="text-red-600 hover:text-red-900"
-                            aria-label="Delete"
-                          >
-                            <FiTrash2 />
+                            <FiMoreVertical size={20} className="text-white" />
                           </button>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {/* Portal for dropdown menu */}
+              {actionMenuOpen && dropdownSupplierId && createPortal(
+                <div
+                  className="absolute w-40 bg-gray-800 border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                  style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
+                  onMouseLeave={handleActionMenuClose}
+                >
+                  <button
+                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
+                    onClick={() => { handleEdit(filteredSuppliers.find(s => s.supplier_id === dropdownSupplierId)); handleActionMenuClose(); }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
+                    onClick={() => { handleDelete(dropdownSupplierId); handleActionMenuClose(); }}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
+                    onClick={() => { handleChat(filteredSuppliers.find(s => s.supplier_id === dropdownSupplierId)); handleActionMenuClose(); }}
+                  >
+                    Chat
+                  </button>
+                </div>,
+                document.body
+              )}
             </div>
           </LoadingOrError>
         </div>

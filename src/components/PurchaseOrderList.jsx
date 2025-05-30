@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import SearchBar from './SearchBar';
 import PurchaseOrderForm from './PurchaseOrderForm';
 import { supabase } from '../supabaseClient';
@@ -18,6 +19,8 @@ const PurchaseOrderList = () => {
   const [actionMenuOpen, setActionMenuOpen] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [dropdownPoId, setDropdownPoId] = useState(null);
 
   // Move fetch functions to top-level so they can be reused
   const fetchPurchaseOrders = async () => {
@@ -231,8 +234,25 @@ const PurchaseOrderList = () => {
     setActionMenuOpen(null);
   };
 
+  // Helper to open the dropdown and set its position
+  const handleActionMenuOpen = (event, po_id) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+    });
+    setDropdownPoId(po_id);
+    setActionMenuOpen(po_id);
+  };
+
+  // Helper to close the dropdown
+  const handleActionMenuClose = () => {
+    setActionMenuOpen(null);
+    setDropdownPoId(null);
+  };
+
   return (
-    <div className="flex-1 min-h-screen bg-gray-100">
+    <div className="flex-1 min-h-screen bg-white">
       <div className="bg-white h-full">
         <div className="flex justify-between items-center py-8 px-8">
           <h1 className="text-2xl font-bold text-gray-800">
@@ -248,7 +268,7 @@ const PurchaseOrderList = () => {
             New Purchase Order
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-0" style={{ width: '1600px', margin: '0 auto' }}>
           <div className="mb-4">
             <SearchBar 
               placeholder="Search by PO ID, supplier, description, order or delivery date..."
@@ -256,126 +276,93 @@ const PurchaseOrderList = () => {
             />
           </div>
           <LoadingOrError loading={loading} error={error} loadingText="Loading purchase orders...">
-            <div className="overflow-x-auto bg-white rounded-lg shadow">
+            <div className="overflow-x-auto bg-white rounded-lg shadow overflow-visible" style={{ width: '1600px' }}>
               {filteredPOs.length === 0 ? (
                 <div className="p-6 text-center text-gray-500">
                   No purchase orders found matching your criteria.
                 </div>
               ) : (
-                <table className="min-w-full table-auto">
+                <table className="min-w-full w-[1600px] table-auto border-separate border-spacing-0 overflow-visible">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivery Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Price</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variant ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approval Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved By</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent to Supplier</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Flagged for Review</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Procurement ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-white z-20 border-l border-gray-200" style={{ borderRight: 'none' }}>Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-white">
                     {filteredPOs.map((po) => (
-                      <tr key={po.po_id} className="hover:bg-gray-50">
+                      <tr key={po.po_id} className="hover:bg-gray-50 relative">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{po.po_id}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.supplier}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.order_date}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.delivery_date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.description}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {po.products && po.products.length > 0 ? (
-                            <div className="max-h-20 overflow-y-auto">
-                              {po.products.map((product, idx) => (
-                                <div key={idx} className="mb-1">
-                                  {product.name} (x{product.quantity}) - ₱{product.price * product.quantity}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            'No products'
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{po.total_price}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {(() => {
-                            const status = getReceiptStatus(po);
-                            if (!status) return <span className="text-red-600">Not Received</span>;
-                            
-                            return (
-                              <div>
-                                <span className={`
-                                  ${status.status === 'full' ? 'text-green-600' : ''}
-                                  ${status.status === 'partial' ? 'text-yellow-600' : ''}
-                                  ${status.status === 'over' ? 'text-orange-600' : ''}
-                                  ${status.status === 'not_received' ? 'text-red-600' : ''}
-                                `}>
-                                  {status.text}
-                                </span>
-                                {status.details && (
-                                  <div className="text-xs mt-1">
-                                    {po.products.map((product, idx) => {
-                                      const detail = status.details[idx];
-                                      if (detail.status === 'not_received') {
-                                        return (
-                                          <div key={idx} className="text-red-600">
-                                            {product.name}: Not received
-                                          </div>
-                                        );
-                                      }
-                                      return (
-                                        <div key={idx} className={`
-                                          ${detail.status === 'full' ? 'text-green-600' : ''}
-                                          ${detail.status === 'partial' ? 'text-yellow-600' : ''}
-                                          ${detail.status === 'over' ? 'text-orange-600' : ''}
-                                        `}>
-                                          {product.name}: {detail.received} of {detail.ordered}
-                                          {detail.status === 'partial' && ` (Short: ${detail.ordered - detail.received})`}
-                                          {detail.status === 'over' && ` (Over: ${detail.received - detail.ordered})`}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.category_id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.quantity}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.unit_price}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.total_price}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.variant_id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.approval_status}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.approved_by}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.sent_to_supplier ? 'TRUE' : 'FALSE'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.flagged_for_review ? 'TRUE' : 'FALSE'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.supplier_id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.procurement_id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.sent_date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-20 border-l border-gray-200" style={{ borderRight: 'none' }}>
                           <button
                             className="bg-black hover:bg-gray-800 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-900"
-                            onClick={() => setActionMenuOpen(actionMenuOpen === po.po_id ? null : po.po_id)}
+                            onClick={(e) => handleActionMenuOpen(e, po.po_id)}
                           >
                             <FiMoreVertical size={20} className="text-white" />
                           </button>
-                          {actionMenuOpen === po.po_id && (
-                            <div className="absolute right-0 mt-2 w-40 bg-gray-800 border border-gray-200 rounded-lg shadow-lg z-10">
-                              <button
-                                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
-                                onClick={() => handleView(po)}
-                              >
-                                View
-                              </button>
-                              <button
-                                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
-                                onClick={() => handleEdit(po)}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
-                                onClick={() => handleOpenReceive(po)}
-                              >
-                                Receive Goods
-                              </button>
-                            </div>
-                          )}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              )}
+              {/* Portal for dropdown menu */}
+              {actionMenuOpen && dropdownPoId && createPortal(
+                <div
+                  className="absolute w-40 bg-gray-800 border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                  style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
+                  onMouseLeave={handleActionMenuClose}
+                >
+                  <button
+                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
+                    onClick={() => { handleView(filteredPOs.find(po => po.po_id === dropdownPoId)); handleActionMenuClose(); }}
+                  >
+                    View
+                  </button>
+                  <button
+                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
+                    onClick={() => { handleEdit(filteredPOs.find(po => po.po_id === dropdownPoId)); handleActionMenuClose(); }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700"
+                    onClick={() => { handleOpenReceive(filteredPOs.find(po => po.po_id === dropdownPoId)); handleActionMenuClose(); }}
+                  >
+                    Receive Goods
+                  </button>
+                </div>,
+                document.body
               )}
             </div>
           </LoadingOrError>
@@ -497,7 +484,7 @@ const PurchaseOrderList = () => {
             <div className="mb-6">
               <h3 className="font-bold mb-2">Products</h3>
               {selectedPO.products && selectedPO.products.length > 0 ? (
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-white rounded-lg p-4">
                   <table className="min-w-full">
                     <thead>
                       <tr>
@@ -510,7 +497,7 @@ const PurchaseOrderList = () => {
                     </thead>
                     <tbody>
                       {selectedPO.products.map((product, idx) => (
-                        <tr key={idx} className="border-t border-gray-200">
+                        <tr key={idx}>
                           <td className="py-2 text-sm">{product.name}</td>
                           <td className="py-2 text-sm text-gray-600">{product.description}</td>
                           <td className="py-2 text-sm text-right">{product.quantity}</td>
@@ -518,7 +505,7 @@ const PurchaseOrderList = () => {
                           <td className="py-2 text-sm text-right">₱{product.price * product.quantity}</td>
                         </tr>
                       ))}
-                      <tr className="border-t border-gray-200 font-bold">
+                      <tr className="font-bold">
                         <td colSpan="4" className="py-2 text-right">Total:</td>
                         <td className="py-2 text-right">₱{selectedPO.total_price}</td>
                       </tr>

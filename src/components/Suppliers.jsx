@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SupplierList from './SupplierList';
 import SupplierOnboarding from './SupplierOnboarding';
+import ContractManagement from './ContractManagement';
 import { motion } from 'framer-motion';
 
 const Suppliers = ({ suppliers, setSuppliers }) => {
@@ -43,6 +44,8 @@ const Suppliers = ({ suppliers, setSuppliers }) => {
           <SupplierList suppliers={suppliers} setSuppliers={setSuppliers} />
         ) : activeTab === 'onboarding' ? (
           <SupplierOnboarding />
+        ) : activeTab === 'contracts' ? (
+          <ContractManagement />
         ) : (
           <div className="p-8 text-gray-600">Contract Management content goes here.</div>
         )}

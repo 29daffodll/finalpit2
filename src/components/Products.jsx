@@ -21,7 +21,6 @@ const Products = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [inventory, setInventory] = useState([]);
 
   // Fetch categories and products
   useEffect(() => {
@@ -35,9 +34,6 @@ const Products = () => {
         const { data: prodData, error: prodError } = await supabase.from('products').select('*');
         if (prodError) throw prodError;
         setProducts(prodData || []);
-        const { data: invData, error: invError } = await supabase.from('inventory').select('*');
-        if (invError) throw invError;
-        setInventory(invData || []);
       } catch (err) {
         setError('Failed to load data: ' + (err.message || err));
       } finally {
@@ -52,22 +48,11 @@ const Products = () => {
     return cat ? cat.name : category_id;
   };
 
-  // Combine inventory and product data
-  const combinedRows = inventory.map(inv => {
-    const prod = products.find(p => p.product_id === inv.product_id) || {};
-    return {
-      ...prod,
-      warehouse_id: inv.warehouse_id,
-      stock_quantity: inv.stock_quantity
-    };
-  });
-
-  const filteredRows = combinedRows.filter(row =>
+  const filteredRows = products.filter(row =>
     (row.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (row.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (row.sku || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (getCategoryName(row.category_id) || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (row.warehouse_id ? row.warehouse_id.toString() : '').toLowerCase().includes(searchTerm.toLowerCase())
+    (getCategoryName(row.category_id) || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleInputChange = (e) => {
@@ -135,19 +120,17 @@ const Products = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Warehouse ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Quantity</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredRows.map((row, idx) => (
-                    <tr key={row.product_id + '-' + row.warehouse_id + '-' + idx} className="hover:bg-gray-50">
+                    <tr key={row.product_id + '-' + idx} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.description}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.sku}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getCategoryName(row.category_id)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{row.price}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.warehouse_id}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.stock_quantity}</td>
                     </tr>
                   ))}

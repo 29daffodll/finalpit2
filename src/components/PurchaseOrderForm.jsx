@@ -66,20 +66,11 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
   };
 
   const handleProductSelect = (product) => {
-    const isSelected = selectedProducts.some(p => p.product_id === product.product_id);
-    let updatedProducts;
-    
-    if (isSelected) {
-      updatedProducts = selectedProducts.filter(p => p.product_id !== product.product_id);
-    } else {
-      updatedProducts = [...selectedProducts, { ...product, quantity: 1 }];
-    }
-    
-    setSelectedProducts(updatedProducts);
+    setSelectedProducts([{ ...product, quantity: 1 }]);
     setFormData(prev => ({
       ...prev,
-      products: updatedProducts,
-      total_price: updatedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0)
+      products: [{ ...product, quantity: 1 }],
+      total_price: product.price
     }));
   };
 
@@ -138,7 +129,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="supplier"
                   value={formData.supplier}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                   required
                 >
                   <option value="" disabled>Select a supplier</option>
@@ -154,7 +145,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="orderDate"
                   value={formData.orderDate}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -165,7 +156,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="deliveryDate"
                   value={formData.deliveryDate}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -176,7 +167,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -196,7 +187,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
               {selectedProducts.length > 0 ? (
                 <div className="space-y-4">
                   {selectedProducts.map((product) => (
-                    <div key={product.product_id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded">
+                    <div key={product.product_id} className="flex items-center space-x-4 p-3 rounded bg-white">
                       <div className="flex-1">
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-gray-500">{product.description}</p>
@@ -209,7 +200,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                           min="1"
                           value={product.quantity}
                           onChange={(e) => handleProductQuantityChange(product.product_id, e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-white"
                         />
                       </div>
                       <div className="w-24 text-right">
@@ -290,7 +281,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
               </div>
 
               <div className="overflow-y-auto max-h-96">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-white">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Select</th>
@@ -301,13 +292,14 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock Quantity</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-white">
                     {filteredProducts.map((product) => (
                       <tr key={product.product_id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <input
-                            type="checkbox"
-                            checked={selectedProducts.some(p => p.product_id === product.product_id)}
+                            type="radio"
+                            name="selected_product"
+                            checked={selectedProducts.length > 0 && selectedProducts[0].product_id === product.product_id}
                             onChange={() => handleProductSelect(product)}
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                           />

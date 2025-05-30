@@ -67,7 +67,7 @@ function App() {
   }, []);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="flex min-h-screen bg-white">
         <Sidebar 
           expanded={sidebarExpanded} 
