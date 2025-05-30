@@ -52,21 +52,21 @@ const PurchaseOrderList = () => {
   // Enable adding new purchase orders to Supabase
   const handleSubmit = async (formData) => {
     // Validation
-    if (!formData.supplier || !formData.orderDate || !formData.deliveryDate || !formData.description) {
+    if (!formData.supplier_id || !formData.order_date || !formData.delivery_date || !formData.description) {
       alert('Please fill in all fields.');
       return;
     }
-    if (!formData.products || formData.products.length === 0) {
+    if (!formData.product || formData.product.length === 0) {
       alert('Please select at least one product.');
       return;
     }
 
     const newPO = {
-      supplier: formData.supplier,
-      order_date: formData.orderDate,
-      delivery_date: formData.deliveryDate,
+      supplier_id: formData.supplier_id,
+      order_date: formData.order_date,
+      delivery_date: formData.delivery_date,
       description: formData.description,
-      products: formData.products,
+      product: formData.product,
       total_price: formData.total_price,
     };
 
@@ -89,7 +89,7 @@ const PurchaseOrderList = () => {
   const filteredPOs = purchaseOrders.filter(po => {
     const matchesSearch =
       po.po_id.toString().includes(searchTerm) ||
-      (po.supplier && po.supplier.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (po.supplier_id && po.supplier_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (po.description && po.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (po.order_date && po.order_date.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (po.delivery_date && po.delivery_date.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -101,12 +101,12 @@ const PurchaseOrderList = () => {
 
   // Helper to get receipt status for a PO
   const getReceiptStatus = (po) => {
-    if (!po || !po.products) return { status: 'not_received', text: 'Not Received' };
+    if (!po || !po.product) return { status: 'not_received', text: 'Not Received' };
     
     const receipt = getReceiptForPO(po.po_id);
     if (!receipt) return { status: 'not_received', text: 'Not Received' };
 
-    const productStatuses = po.products.map(product => {
+    const productStatuses = po.product.map(product => {
       if (!product || !receipt.received_products) return { status: 'not_received', quantity: 0 };
       
       const receivedProduct = receipt.received_products.find(rp => rp.product_id === product.product_id);
@@ -153,7 +153,7 @@ const PurchaseOrderList = () => {
     setSelectedPO(po);
     setReceiveForm({
       received_date: '',
-      ...Object.fromEntries(po.products.map((_, idx) => [`received_quantity_${idx}`, '']))
+      ...Object.fromEntries(po.product.map((_, idx) => [`received_quantity_${idx}`, '']))
     });
     setReceiveModalOpen(true);
   };
@@ -163,7 +163,7 @@ const PurchaseOrderList = () => {
     e.preventDefault();
     
     // Validate all products have received quantities
-    const hasAllQuantities = selectedPO.products.every((_, idx) => 
+    const hasAllQuantities = selectedPO.product.every((_, idx) => 
       receiveForm[`received_quantity_${idx}`] && Number(receiveForm[`received_quantity_${idx}`]) >= 0
     );
     
@@ -172,7 +172,7 @@ const PurchaseOrderList = () => {
       return;
     }
 
-    const receivedProducts = selectedPO.products.map((product, idx) => ({
+    const receivedProducts = selectedPO.product.map((product, idx) => ({
       product_id: product.product_id,
       received_quantity: Number(receiveForm[`received_quantity_${idx}`])
     }));
@@ -380,11 +380,11 @@ const PurchaseOrderList = () => {
           if (editMode && selectedPO) {
             // Update existing PO
             const updatedPO = {
-              supplier: formData.supplier,
-              order_date: formData.orderDate,
-              delivery_date: formData.deliveryDate,
+              supplier_id: formData.supplier_id,
+              order_date: formData.order_date,
+              delivery_date: formData.delivery_date,
               description: formData.description,
-              products: formData.products,
+              product: formData.product,
               total_price: formData.total_price,
             };
             const { error } = await supabase
@@ -405,11 +405,11 @@ const PurchaseOrderList = () => {
           }
         }}
         initialData={editMode && selectedPO ? {
-          supplier: selectedPO.supplier,
-          orderDate: selectedPO.order_date,
-          deliveryDate: selectedPO.delivery_date,
+          supplier_id: selectedPO.supplier_id,
+          order_date: selectedPO.order_date,
+          delivery_date: selectedPO.delivery_date,
           description: selectedPO.description,
-          products: selectedPO.products || [],
+          product: selectedPO.product || [],
           total_price: selectedPO.total_price,
         } : undefined}
       />
@@ -421,7 +421,7 @@ const PurchaseOrderList = () => {
             <form onSubmit={handleReceiveSubmit}>
               <div className="mb-6">
                 <h3 className="font-bold mb-2">Products</h3>
-                {selectedPO?.products?.map((product, idx) => (
+                {selectedPO?.product?.map((product, idx) => (
                   <div key={idx} className="mb-4 bg-gray-50 p-4 rounded">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -475,7 +475,7 @@ const PurchaseOrderList = () => {
             <h2 className="text-lg font-bold mb-4">Purchase Order Details</h2>
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div><b>PO ID:</b> {selectedPO.po_id}</div>
-              <div><b>Supplier:</b> {selectedPO.supplier}</div>
+              <div><b>Supplier:</b> {selectedPO.supplier_id}</div>
               <div><b>Order Date:</b> {selectedPO.order_date}</div>
               <div><b>Delivery Date:</b> {selectedPO.delivery_date}</div>
               <div className="col-span-2"><b>Description:</b> {selectedPO.description}</div>
@@ -483,7 +483,7 @@ const PurchaseOrderList = () => {
 
             <div className="mb-6">
               <h3 className="font-bold mb-2">Products</h3>
-              {selectedPO.products && selectedPO.products.length > 0 ? (
+              {selectedPO.product && selectedPO.product.length > 0 ? (
                 <div className="bg-white rounded-lg p-4">
                   <table className="min-w-full">
                     <thead>
@@ -496,7 +496,7 @@ const PurchaseOrderList = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedPO.products.map((product, idx) => (
+                      {selectedPO.product.map((product, idx) => (
                         <tr key={idx}>
                           <td className="py-2 text-sm">{product.name}</td>
                           <td className="py-2 text-sm text-gray-600">{product.description}</td>

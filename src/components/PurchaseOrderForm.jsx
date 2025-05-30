@@ -3,11 +3,11 @@ import { supabase } from '../supabaseClient';
 
 const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
   const [formData, setFormData] = useState({
-    supplier: '',
-    orderDate: '',
-    deliveryDate: '',
+    supplier_id: '',
+    order_date: '',
+    delivery_date: '',
     description: '',
-    products: [],
+    product: [],
     total_price: '',
   });
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -19,20 +19,20 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
   useEffect(() => {
     if (isOpen && initialData) {
       setFormData({
-        supplier: initialData.supplier || '',
-        orderDate: initialData.orderDate || '',
-        deliveryDate: initialData.deliveryDate || '',
+        supplier_id: initialData.supplier_id || '',
+        order_date: initialData.order_date || '',
+        delivery_date: initialData.delivery_date || '',
         description: initialData.description || '',
-        products: initialData.products || [],
+        product: initialData.product || [],
         total_price: initialData.total_price || '',
       });
     } else if (isOpen && !initialData) {
       setFormData({
-        supplier: '',
-        orderDate: '',
-        deliveryDate: '',
+        supplier_id: '',
+        order_date: '',
+        delivery_date: '',
         description: '',
-        products: [],
+        product: [],
         total_price: '',
       });
     }
@@ -69,7 +69,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     setSelectedProducts([{ ...product, quantity: 1 }]);
     setFormData(prev => ({
       ...prev,
-      products: [{ ...product, quantity: 1 }],
+      product: [{ ...product, quantity: 1 }],
       total_price: product.price
     }));
   };
@@ -82,18 +82,18 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     setSelectedProducts(updatedProducts);
     setFormData(prev => ({
       ...prev,
-      products: updatedProducts,
+      product: updatedProducts,
       total_price: updatedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0)
     }));
   };
 
   const handleClose = () => {
     setFormData({
-      supplier: '',
-      orderDate: '',
-      deliveryDate: '',
+      supplier_id: '',
+      order_date: '',
+      delivery_date: '',
       description: '',
-      products: [],
+      product: [],
       total_price: '',
     });
     setSelectedProducts([]);
@@ -126,15 +126,15 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
               <div>
                 <label className="block text-sm font-medium text-gray-700">Supplier</label>
                 <select
-                  name="supplier"
-                  value={formData.supplier}
+                  name="supplier_id"
+                  value={formData.supplier_id}
                   onChange={handleInputChange}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                   required
                 >
                   <option value="" disabled>Select a supplier</option>
                   {suppliers.map((supplier) => (
-                    <option key={supplier.supplier_id} value={supplier.name}>{supplier.name}</option>
+                    <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.name}</option>
                   ))}
                 </select>
               </div>
@@ -142,8 +142,8 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                 <label className="block text-sm font-medium text-gray-700">Order Date</label>
                 <input
                   type="date"
-                  name="orderDate"
-                  value={formData.orderDate}
+                  name="order_date"
+                  value={formData.order_date}
                   onChange={handleInputChange}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                   required
@@ -153,8 +153,8 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                 <label className="block text-sm font-medium text-gray-700">Delivery Date</label>
                 <input
                   type="date"
-                  name="deliveryDate"
-                  value={formData.deliveryDate}
+                  name="delivery_date"
+                  value={formData.delivery_date}
                   onChange={handleInputChange}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-white placeholder-gray-400"
                   required
