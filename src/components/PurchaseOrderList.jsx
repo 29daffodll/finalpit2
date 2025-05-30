@@ -244,9 +244,9 @@ const PurchaseOrderList = () => {
                             return null;
                           })()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium relative">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
-                            className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-200"
+                            className="bg-black hover:bg-gray-800 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-900"
                             onClick={() => setActionMenuOpen(actionMenuOpen === po.po_id ? null : po.po_id)}
                           >
                             <FiMoreVertical size={20} className="text-white" />
@@ -270,12 +270,6 @@ const PurchaseOrderList = () => {
                                 onClick={() => handleOpenReceive(po)}
                               >
                                 Receive Goods
-                              </button>
-                              <button
-                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
-                                onClick={() => handleDelete(po)}
-                              >
-                                Delete
                               </button>
                             </div>
                           )}

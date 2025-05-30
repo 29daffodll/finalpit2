@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient'; // adjust path if needed
 import SearchBar from './SearchBar';
 import LoadingOrError from './LoadingOrError';
+import RelationshipManagement from './RelationshipManagement';
 
 const initialFormData = {
   name: '',
@@ -20,6 +21,7 @@ const Products = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [inventory, setInventory] = useState([]);
 
   // Fetch categories and products
   useEffect(() => {
@@ -33,6 +35,9 @@ const Products = () => {
         const { data: prodData, error: prodError } = await supabase.from('products').select('*');
         if (prodError) throw prodError;
         setProducts(prodData || []);
+        const { data: invData, error: invError } = await supabase.from('inventory').select('*');
+        if (invError) throw invError;
+        setInventory(invData || []);
       } catch (err) {
         setError('Failed to load data: ' + (err.message || err));
       } finally {
@@ -47,12 +52,22 @@ const Products = () => {
     return cat ? cat.name : category_id;
   };
 
-  const filteredProducts = products.filter(product =>
-    (product.product_id ? product.product_id.toString() : '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.sku || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (getCategoryName(product.category_id) || '').toLowerCase().includes(searchTerm.toLowerCase())
+  // Combine inventory and product data
+  const combinedRows = inventory.map(inv => {
+    const prod = products.find(p => p.product_id === inv.product_id) || {};
+    return {
+      ...prod,
+      warehouse_id: inv.warehouse_id,
+      stock_quantity: inv.stock_quantity
+    };
+  });
+
+  const filteredRows = combinedRows.filter(row =>
+    (row.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (row.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (row.sku || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (getCategoryName(row.category_id) || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (row.warehouse_id ? row.warehouse_id.toString() : '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleInputChange = (e) => {
@@ -104,12 +119,6 @@ const Products = () => {
       <div className="bg-white h-full">
         <div className="flex justify-between items-center py-8 px-8">
           <h1 className="text-2xl font-bold text-gray-800">Products</h1>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Add Product
-          </button>
         </div>
         <div className="p-6">
           <SearchBar 
@@ -117,56 +126,31 @@ const Products = () => {
             onSearch={setSearchTerm}
           />
           <LoadingOrError loading={loading} error={error} loadingText="Loading products...">
-            <div className="overflow-x-auto bg-white rounded-lg shadow mt-4">
+            <div className="bg-white rounded-lg shadow p-6">
               <table className="min-w-full table-auto">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Warehouse ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Quantity</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProducts.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">No products found.</td>
+                  {filteredRows.map((row, idx) => (
+                    <tr key={row.product_id + '-' + row.warehouse_id + '-' + idx} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.description}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.sku}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getCategoryName(row.category_id)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱{row.price}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.warehouse_id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.stock_quantity}</td>
                     </tr>
-                  ) : (
-                    filteredProducts.map((product) => (
-                      <tr key={product.product_id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.product_id}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.description}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.sku}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{getCategoryName(product.category_id)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.created_at}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex space-x-2">
-                          <button
-                            onClick={() => handleEdit(product)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                            title="Edit"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L5 12.828a2 2 0 010-2.828L9 13z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDelete(product.product_id)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>

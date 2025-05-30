@@ -5,6 +5,13 @@ const SupplierOnboarding = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-semibold mb-4">Supplier Onboarding</h1>
+      <div className="flex justify-end mb-4">
+        <button
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          Add Supplier
+        </button>
+      </div>
       <nav className="bg-gray-100 rounded-lg mb-6">
         <ul className="flex space-x-6 p-4">
           <li>

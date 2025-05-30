@@ -122,7 +122,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                   name="invoiceNumber"
                   value={formData.invoiceNumber}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                 />
               </div>
@@ -133,7 +133,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                   name="supplier"
                   value={formData.supplier}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                 />
               </div>
@@ -144,7 +144,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                   name="issueDate"
                   value={formData.issueDate}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                 />
               </div>
@@ -155,7 +155,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                   name="dueDate"
                   value={formData.dueDate}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                 />
               </div>
@@ -168,7 +168,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                 name="paymentTerms"
                 value={formData.paymentTerms}
                 onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                 placeholder="e.g., Net 30"
               />
             </div>
@@ -181,7 +181,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                   name="po_reference"
                   value={formData.po_reference}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-gray-50"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   readOnly
                 />
               </div>
@@ -209,7 +209,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                       type="text"
                       value={item.description}
                       onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                       required
                       readOnly={!!selectedPO}
                     />
@@ -220,7 +220,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                       type="number"
                       value={item.quantity}
                       onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value))}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                       required
                       readOnly={!!selectedPO}
                     />
@@ -231,7 +231,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                       type="number"
                       value={item.unitPrice}
                       onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value))}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                       required
                       readOnly={!!selectedPO}
                     />
@@ -261,7 +261,7 @@ const InvoiceForm = ({ isOpen, onClose, onSubmit, selectedPO }) => {
                 value={formData.notes}
                 onChange={handleInputChange}
                 rows={3}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                 placeholder="Additional notes or payment instructions..."
               />
             </div>

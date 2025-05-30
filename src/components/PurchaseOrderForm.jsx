@@ -72,7 +72,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="supplier"
                   value={formData.supplier}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                 />
               </div>
@@ -83,7 +83,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="orderDate"
                   value={formData.orderDate}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                 />
               </div>
@@ -94,7 +94,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="deliveryDate"
                   value={formData.deliveryDate}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                 />
               </div>
@@ -105,7 +105,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                 />
               </div>
@@ -116,7 +116,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="quantity"
                   value={formData.quantity}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                   min="1"
                 />
@@ -128,7 +128,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="unitPrice"
                   value={formData.unitPrice}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   required
                   min="1"
                 />
@@ -140,7 +140,7 @@ const PurchaseOrderForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                   name="total_price"
                   value={formData.total_price}
                   readOnly
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 bg-gray-100"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 bg-gray-100"
                 />
               </div>
             </div>

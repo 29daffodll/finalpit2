@@ -207,12 +207,6 @@ const InvoiceList = () => {
                         >
                           View
                         </button>
-                        <button 
-                          onClick={() => handleDeleteInvoice(invoice.invoice_number)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
                       </td>
                     </tr>
                   ))}

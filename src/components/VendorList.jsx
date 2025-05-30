@@ -206,13 +206,6 @@ const VendorList = () => {
                         >
                           <FiEdit2 />
                         </button>
-                        <button
-                          onClick={() => handleDelete(vendor.vendor_id)}
-                          className="text-red-600 hover:text-red-900"
-                          aria-label="Delete"
-                        >
-                          <FiTrash2 />
-                        </button>
                       </td>
                     </tr>
                   ))}
@@ -238,7 +231,7 @@ const VendorList = () => {
                     name="company_name"
                     value={formData.company_name}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                     required
                   />
                 </div>
@@ -249,7 +242,7 @@ const VendorList = () => {
                     name="contact_person"
                     value={formData.contact_person}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -259,7 +252,7 @@ const VendorList = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -269,7 +262,7 @@ const VendorList = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -279,7 +272,7 @@ const VendorList = () => {
                     name="category_id"
                     value={formData.category_id}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -289,7 +282,7 @@ const VendorList = () => {
                     name="rating"
                     value={formData.rating}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                     step="0.1"
                   />
                 </div>
@@ -300,7 +293,7 @@ const VendorList = () => {
                     name="status"
                     value={formData.status}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -310,7 +303,7 @@ const VendorList = () => {
                     name="tax_id"
                     value={formData.tax_id}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -320,7 +313,7 @@ const VendorList = () => {
                     name="payment_terms"
                     value={formData.payment_terms}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="flex justify-end mt-6">

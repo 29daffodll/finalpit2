@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import SearchBar from './SearchBar';
-import { FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiMessageSquare } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import LoadingOrError from './LoadingOrError';
 
 const initialFormData = {
@@ -23,6 +24,7 @@ const SupplierList = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Fetch suppliers from Supabase
   useEffect(() => {
@@ -126,6 +128,30 @@ const SupplierList = () => {
     handleCloseModal();
   };
 
+  const handleChat = (supplier) => {
+    // Parse contact details
+    const contactDetails = typeof supplier.contact_details === 'string' 
+      ? supplier.contact_details.split('|').map(detail => detail.trim())
+      : ['', ''];
+
+    navigate('/relationship-management', { 
+      state: { 
+        selectedSupplier: {
+          id: supplier.supplier_id,
+          name: supplier.name,
+          status: 'Online',
+          lastActive: 'Just now',
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(supplier.name)}&background=0D8ABC&color=fff`,
+          contact: {
+            email: contactDetails[0] || '',
+            phone: contactDetails[1] || '',
+            address: supplier.geographical_location || ''
+          }
+        }
+      }
+    });
+  };
+
   const filteredSuppliers = suppliers.filter((supplier) => {
     const certs = (supplier.certifications || []).join(', ');
     return (
@@ -139,70 +165,76 @@ const SupplierList = () => {
   return (
     <div className="flex-1 min-h-screen bg-gray-100">
       <div className="bg-white h-full">
-        <div className="flex justify-between items-center py-8 px-8">
+        <div className="flex justify-between items-center w-full max-w-none py-4 md:py-8 px-2 md:px-8">
           <h1 className="text-2xl font-bold text-gray-800">Suppliers</h1>
-          <button
-            onClick={handleAdd}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-            aria-label="Add Supplier"
-          >
-            +
-          </button>
         </div>
-        <div className="p-6">
+        <div className="p-2 md:p-6">
           <SearchBar
             placeholder="Search suppliers by name, ID, product/service, or certifications..."
             onSearch={setSearchTerm}
           />
           <LoadingOrError loading={loading} error={error} loadingText="Loading suppliers...">
-            <div className="overflow-x-auto bg-white rounded-lg shadow">
-              <table className="min-w-full table-auto">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Details</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product/Service</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certifications</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compliance History</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Classification</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredSuppliers.map((supplier) => (
-                    <tr key={supplier.supplier_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{supplier.supplier_id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{typeof supplier.contact_details === 'string' ? supplier.contact_details : JSON.stringify(supplier.contact_details)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.product_service}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(supplier.certifications || []).join(', ')}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.compliance_history}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.classification}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.geographical_location}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.performance_rating}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
-                        <button
-                          onClick={() => handleEdit(supplier)}
-                          className="text-indigo-600 hover:text-indigo-900"
-                          aria-label="Edit"
-                        >
-                          <FiEdit2 />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(supplier.supplier_id)}
-                          className="text-red-600 hover:text-red-900"
-                          aria-label="Delete"
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </td>
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="overflow-x-auto" style={{ maxWidth: '100vw' }}>
+                <table className="w-full table-auto" style={{ minWidth: '900px' }}>
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Supplier ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Contact Details</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Product/Service</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Certifications</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Compliance History</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Classification</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Location</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Rating</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredSuppliers.map((supplier) => (
+                      <tr key={supplier.supplier_id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{supplier.supplier_id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 break-all">
+                          <div className="flex items-center space-x-2">
+                            <span>{typeof supplier.contact_details === 'string' ? supplier.contact_details : JSON.stringify(supplier.contact_details)}</span>
+                            <button
+                              onClick={() => handleChat(supplier)}
+                              className="inline-flex items-center px-2 py-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                              title="Chat with supplier"
+                            >
+                              <FiMessageSquare className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.product_service}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(supplier.certifications || []).join(', ')}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.compliance_history}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.classification}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.geographical_location}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{supplier.performance_rating}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
+                          <button
+                            onClick={() => handleEdit(supplier)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                            aria-label="Edit"
+                          >
+                            <FiEdit2 />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(supplier.supplier_id)}
+                            className="text-red-600 hover:text-red-900"
+                            aria-label="Delete"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </LoadingOrError>
         </div>
@@ -223,7 +255,7 @@ const SupplierList = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                     required
                   />
                 </div>
@@ -234,7 +266,7 @@ const SupplierList = () => {
                     name="contact_details"
                     value={formData.contact_details}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -244,7 +276,7 @@ const SupplierList = () => {
                     name="product_service"
                     value={formData.product_service}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -254,7 +286,7 @@ const SupplierList = () => {
                     name="certifications"
                     value={formData.certifications}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -264,7 +296,7 @@ const SupplierList = () => {
                     name="compliance_history"
                     value={formData.compliance_history}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -274,7 +306,7 @@ const SupplierList = () => {
                     name="classification"
                     value={formData.classification}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -284,7 +316,7 @@ const SupplierList = () => {
                     name="geographical_location"
                     value={formData.geographical_location}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div className="mb-4">
@@ -294,7 +326,7 @@ const SupplierList = () => {
                     name="performance_rating"
                     value={formData.performance_rating}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-white bg-gray-900 placeholder-gray-400"
                     step="0.1"
                   />
                 </div>
