@@ -5,7 +5,6 @@ import Dashboard from './components/dashboard.jsx';
 import Suppliers from './components/Suppliers';
 import InvoiceList from './components/InvoiceList';
 import PurchaseOrderList from './components/PurchaseOrderList';
-import VendorList from './components/VendorList';
 import Sidebar from './components/sidebar';
 import SupplierOnboarding from './components/SupplierOnboarding';
 import Products from './components/Products';
@@ -92,7 +91,6 @@ function App() {
               <Route path="/suppliers/onboarding" element={<SupplierOnboarding />} />
               <Route path="/invoices" element={<InvoiceList purchaseOrders={purchaseOrders} />} />
               <Route path="/purchase-orders" element={<PurchaseOrderList purchaseOrders={purchaseOrders} setPurchaseOrders={setPurchaseOrders} />} />
-              <Route path="/vendors" element={<VendorList />} />
               <Route path="/products" element={<Products />} />
               <Route path="/relationship-management" element={<RelationshipManagement />} />
             </Routes>

@@ -127,7 +127,7 @@ const Dashboard = () => {
         
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow hover:shadow-md transition border-2 border-blue-500">
+          <div key="total-invoices" className="bg-white rounded-xl p-6 shadow hover:shadow-md transition border-2 border-blue-500">
             <div className="text-sm text-gray-500 mb-2">Total Invoices</div>
             <div className="text-3xl font-bold text-gray-800">{metrics.totalInvoices}</div>
             <div className="text-sm text-gray-500 mt-2">
@@ -135,7 +135,7 @@ const Dashboard = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-xl p-6 shadow hover:shadow-md transition border-2 border-yellow-500">
+          <div key="pending-invoices" className="bg-white rounded-xl p-6 shadow hover:shadow-md transition border-2 border-yellow-500">
             <div className="text-sm text-gray-500 mb-2">Pending Invoices</div>
             <div className="text-3xl font-bold text-gray-800">{metrics.pendingInvoices}</div>
             <div className="text-sm text-gray-500 mt-2">
@@ -143,7 +143,7 @@ const Dashboard = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-xl p-6 shadow hover:shadow-md transition border-2 border-red-500">
+          <div key="overdue-invoices" className="bg-white rounded-xl p-6 shadow hover:shadow-md transition border-2 border-red-500">
             <div className="text-sm text-gray-500 mb-2">Overdue Invoices</div>
             <div className="text-3xl font-bold text-gray-800">{metrics.overdueInvoices}</div>
             <div className="text-sm text-gray-500 mt-2">
@@ -151,7 +151,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow hover:shadow-md transition border-2 border-green-500">
+          <div key="monthly-invoices" className="bg-white rounded-xl p-6 shadow hover:shadow-md transition border-2 border-green-500">
             <div className="text-sm text-gray-500 mb-2">This Month</div>
             <div className="text-3xl font-bold text-gray-800">{metrics.monthlyInvoices}</div>
             <div className="text-sm text-gray-500 mt-2">
@@ -167,8 +167,8 @@ const Dashboard = () => {
           </div>
           <div className="p-6">
             <div className="grid grid-cols-6 gap-4">
-              {monthlyTrend.map((month) => (
-                <div key={month.month} className="text-center">
+              {monthlyTrend.map((month, index) => (
+                <div key={`month-${month.month}-${index}`} className="text-center">
                   <div className="text-sm text-gray-500">{month.month}</div>
                   <div className="text-lg font-semibold text-gray-800">{month.count}</div>
                   <div className="text-sm text-gray-500">₱{month.amount.toLocaleString()}</div>
@@ -196,7 +196,7 @@ const Dashboard = () => {
               ) : (
                 <div className="space-y-4">
                   {recentInvoices.map((invoice) => (
-                    <div key={invoice.invoice_number} className="flex justify-between items-center">
+                    <div key={`invoice-${invoice.invoice_number}`} className="flex justify-between items-center">
                       <div>
                         <p className="font-medium text-gray-800">INV-{String(invoice.invoice_number).padStart(3, '0')}</p>
                         <p className="text-sm text-gray-500">{invoice.issue_date}</p>
@@ -234,14 +234,14 @@ const Dashboard = () => {
               ) : (
                 <div className="space-y-4">
                   {recentPOs.map((po) => (
-                    <div key={po.order_id} className="flex justify-between items-center">
+                    <div key={`po-${po.po_id}`} className="flex justify-between items-center">
                       <div>
-                        <p className="font-medium text-gray-800">PO-{po.order_id}</p>
+                        <p className="font-medium text-gray-800">PO-{po.po_id}</p>
                         <p className="text-sm text-gray-500">{po.order_date}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium text-gray-800">₱{po.total_amount}</p>
-                        <p className="text-sm text-gray-500">{po.supplier_name}</p>
+                        <p className="font-medium text-gray-800">₱{po.total_price}</p>
+                        <p className="text-sm text-gray-500">{po.supplier}</p>
                       </div>
                     </div>
                   ))}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiChevronLeft, FiChevronRight, FiUsers, FiShoppingBag, FiFileText, FiDollarSign, FiMessageSquare, FiPackage, FiBox } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiUsers, FiShoppingBag, FiFileText, FiDollarSign, FiMessageSquare, FiPackage, FiBox, FiHome } from 'react-icons/fi';
 
 const Sidebar = ({ expanded, setExpanded, isMobile }) => {
   const location = useLocation();
@@ -69,14 +69,14 @@ const Sidebar = ({ expanded, setExpanded, isMobile }) => {
           </div>
 
           <nav className="space-y-2">
+            <Link to="/dashboard" className={navItemClass('/dashboard')} style={textStyle('/dashboard')}>
+              <FiHome className={iconClass('/dashboard')} style={textStyle('/dashboard')} />
+              {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Dashboard</span>}
+            </Link>
+
             <Link to="/suppliers" className={navItemClass('/suppliers')} style={textStyle('/suppliers')}>
               <FiUsers className={iconClass('/suppliers')} style={textStyle('/suppliers')} />
               {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Suppliers</span>}
-            </Link>
-
-            <Link to="/vendors" className={navItemClass('/vendors')} style={textStyle('/vendors')}>
-              <FiShoppingBag className={iconClass('/vendors')} style={textStyle('/vendors')} />
-              {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Vendors</span>}
             </Link>
 
             <Link to="/purchase-orders" className={navItemClass('/purchase-orders')} style={textStyle('/purchase-orders')}>

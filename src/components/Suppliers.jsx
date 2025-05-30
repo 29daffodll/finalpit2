@@ -13,7 +13,8 @@ const Suppliers = ({ suppliers, setSuppliers }) => {
           <div className="flex space-x-4 px-8 mb-6 border-b border-gray-200">
             {[
               { id: 'list', label: 'Supplier List' },
-              { id: 'onboarding', label: 'Supplier Onboarding' }
+              { id: 'onboarding', label: 'Supplier Onboarding' },
+              { id: 'contracts', label: 'Contract Management' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -40,8 +41,10 @@ const Suppliers = ({ suppliers, setSuppliers }) => {
 
         {activeTab === 'list' ? (
           <SupplierList suppliers={suppliers} setSuppliers={setSuppliers} />
-        ) : (
+        ) : activeTab === 'onboarding' ? (
           <SupplierOnboarding />
+        ) : (
+          <div className="p-8 text-gray-600">Contract Management content goes here.</div>
         )}
       </div>
     </div>
