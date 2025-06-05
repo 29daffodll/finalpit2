@@ -9,6 +9,9 @@ import Sidebar from './components/sidebar';
 import SupplierOnboarding from './components/SupplierOnboarding';
 import Products from './components/Products';
 import RelationshipManagement from './components/RelationshipManagement';
+import Procurement from './components/Procurement';
+import ProcurementItems from './components/procurement/Items';
+import ProcurementRequest from './components/procurement/Request';
 
 function App() {
   const [suppliers, setSuppliers] = useState([
@@ -87,6 +90,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard suppliers={suppliers} />} />
               <Route path="/dashboard" element={<Dashboard suppliers={suppliers} />} />
+              <Route path="/procurement" element={<Procurement />} />
+              <Route path="/procurement/items" element={<ProcurementItems />} />
+              <Route path="/procurement/request" element={<ProcurementRequest />} />
               <Route path="/suppliers" element={<Suppliers suppliers={suppliers} setSuppliers={setSuppliers} />} />
               <Route path="/suppliers/onboarding" element={<SupplierOnboarding />} />
               <Route path="/invoices" element={<InvoiceList purchaseOrders={purchaseOrders} />} />

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiChevronLeft, FiChevronRight, FiUsers, FiShoppingBag, FiFileText, FiDollarSign, FiMessageSquare, FiPackage, FiBox, FiHome } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiUsers, FiShoppingBag, FiFileText, FiDollarSign, FiMessageSquare, FiPackage, FiHome, FiShoppingCart, FiChevronDown } from 'react-icons/fi';
 
 const Sidebar = ({ expanded, setExpanded, isMobile }) => {
   const location = useLocation();
+  const [procurementExpanded, setProcurementExpanded] = useState(false);
 
   // Helper to determine active/inactive classes
   const navItemClass = (path) => {
@@ -18,6 +19,12 @@ const Sidebar = ({ expanded, setExpanded, isMobile }) => {
 
   const textStyle = (path) => {
     return location.pathname === path ? { color: 'white' } : {};
+  };
+
+  const subNavItemClass = (path) => {
+    return `flex items-center px-8 py-2 text-sm transition-colors duration-200 ${
+      location.pathname === path ? 'bg-blue-500 text-white' : 'text-gray-400 hover:bg-gray-700'
+    }`;
   };
 
   return (
@@ -74,34 +81,52 @@ const Sidebar = ({ expanded, setExpanded, isMobile }) => {
               {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Dashboard</span>}
             </Link>
 
+            <div>
+              <button 
+                onClick={() => setProcurementExpanded(!procurementExpanded)}
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors duration-200 ${
+                  location.pathname.startsWith('/procurement') || 
+                  location.pathname === '/purchase-orders' || 
+                  location.pathname === '/invoices'
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center">
+                  <FiShoppingCart className={iconClass('/procurement')} style={textStyle('/procurement')} />
+                  {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Procurement</span>}
+                </div>
+                {expanded && (
+                  <FiChevronDown 
+                    className={`w-4 h-4 transition-transform duration-200 ${procurementExpanded ? 'transform rotate-180' : ''}`}
+                    style={textStyle('/procurement')}
+                  />
+                )}
+              </button>
+              
+              {expanded && procurementExpanded && (
+                <div className="mt-1 space-y-1">
+                  <Link to="/procurement/request" className={subNavItemClass('/procurement/request')}>
+                    <span className="ml-8 font-medium">Request</span>
+                  </Link>
+                  <Link to="/procurement/items" className={subNavItemClass('/procurement/items')}>
+                    <span className="ml-8 font-medium">Items</span>
+                  </Link>
+                  <Link to="/invoices" className={subNavItemClass('/invoices')}>
+                    <span className="ml-8 font-medium">Invoices</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
             <Link to="/suppliers" className={navItemClass('/suppliers')} style={textStyle('/suppliers')}>
               <FiUsers className={iconClass('/suppliers')} style={textStyle('/suppliers')} />
               {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Suppliers</span>}
             </Link>
 
-            <Link to="/purchase-orders" className={navItemClass('/purchase-orders')} style={textStyle('/purchase-orders')}>
-              <FiFileText className={iconClass('/purchase-orders')} style={textStyle('/purchase-orders')} />
-              {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Purchase Orders</span>}
-            </Link>
-
-            <Link to="/invoices" className={navItemClass('/invoices')} style={textStyle('/invoices')}>
-              <FiDollarSign className={iconClass('/invoices')} style={textStyle('/invoices')} />
-              {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Invoices</span>}
-            </Link>
-
             <Link to="/relationship-management" className={navItemClass('/relationship-management')} style={textStyle('/relationship-management')}>
               <FiMessageSquare className={iconClass('/relationship-management')} style={textStyle('/relationship-management')} />
               {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Relationship Management</span>}
-            </Link>
-
-            <Link to="/products" className={navItemClass('/products')} style={textStyle('/products')}>
-              <FiPackage className={iconClass('/products')} style={textStyle('/products')} />
-              {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Products</span>}
-            </Link>
-
-            <Link to="/inventory" className={navItemClass('/inventory')} style={textStyle('/inventory')}>
-              <FiBox className={iconClass('/inventory')} style={textStyle('/inventory')} />
-              {expanded && <span className="ml-3 font-medium !text-white" style={{ color: 'white' }}>Inventory Management</span>}
             </Link>
           </nav>
         </div>
